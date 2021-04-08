@@ -1,0 +1,11 @@
+--- ../Makefile	2021-02-16 17:21:26.976860237 -0500
++++ /tmp/st/Makefile	2021-02-16 17:18:05.615328373 -0500
+@@ -49,8 +49,6 @@
+ 	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/st.1
+ 	tic -sx st.info
+ 	@echo Please see the README file regarding the terminfo entry of st.
+-	cp -f st.desktop /usr/share/applications/st.desktop
+-	update-desktop-database
+ 
+ uninstall:
+ 	rm -f $(DESTDIR)$(PREFIX)/bin/st

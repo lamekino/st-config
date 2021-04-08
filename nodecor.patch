@@ -1,0 +1,104 @@
+--- x.c.orig	2020-06-17 16:23:11.679407404 -0400
++++ x.c	2020-06-17 16:42:14.848429953 -0400
+@@ -254,6 +254,84 @@
+ 
+ static int oldbutton = 3; /* button event on startup: 3 = release */
+ 
++// TODO: make this a extern from config.h and refactor code
++// for st's use instead of general use
++// from toggle-decorations.c
++typedef struct
++{
++	unsigned long flags;
++	unsigned long functions;
++	unsigned long decorations;
++	long input_mode;
++	unsigned long status;
++} MotifWmHints;
++
++// from toggle-decorations.c
++static MotifWmHints *
++get_motif_wm_hints (Display *display,
++                    Window   window)
++{
++	Atom property;
++	int result;
++	Atom actual_type;
++	int actual_format;
++	unsigned long nitems;
++	unsigned long bytes_after;
++	unsigned char *data;
++	
++	property = XInternAtom (display, "_MOTIF_WM_HINTS", False);
++	result = XGetWindowProperty (display, window, property,
++	                             0, LONG_MAX, False, AnyPropertyType,
++	                             &actual_type, &actual_format,
++	                             &nitems, &bytes_after, &data);
++	
++	if (result == Success && data != NULL)
++	{
++		size_t data_size;
++		size_t max_size;
++		MotifWmHints *hints;
++		
++		data_size = nitems * sizeof (long);
++		max_size = sizeof (*hints);
++		
++		hints = calloc (1, max_size);
++		
++		memcpy (hints, data, data_size > max_size ? max_size : data_size);
++		XFree (data);
++		
++		return hints;
++	}
++	
++	return NULL;
++}
++
++// from toggle-decorations.c
++static void
++toggle_window_decorations(Display *display, Window window)
++{
++	MotifWmHints *hints;
++	Atom property;
++	int nelements;
++
++	hints = get_motif_wm_hints (display, window);
++	if (hints == NULL)
++	{
++		hints = calloc (1, sizeof (*hints));
++		hints->decorations = (1L << 0);
++	}
++
++	hints->flags |= (1L << 1);
++	hints->decorations = hints->decorations == 0 ? (1L << 0) : 0;
++
++	property = XInternAtom (display, "_MOTIF_WM_HINTS", False);
++	nelements = sizeof (*hints) / sizeof (long);
++
++	XChangeProperty (display, window, property, property, 32, PropModeReplace,
++					 (unsigned char *) hints, nelements);
++
++	free (hints);
++}
++
+ void
+ clipcopy(const Arg *dummy)
+ {
+@@ -1205,6 +1283,9 @@
+ 	xsel.xtarget = XInternAtom(xw.dpy, "UTF8_STRING", 0);
+ 	if (xsel.xtarget == None)
+ 		xsel.xtarget = XA_STRING;
++
++	// toggle window decorations
++	if (nodecorations) toggle_window_decorations(xw.dpy, xw.win);
+ }
+ 
+ int
+--- st.h	2020-06-17 16:44:47.917766898 -0400
++++ ~/src/st/st.h	2020-06-17 16:38:32.182620802 -0400
+@@ -123,3 +123,4 @@
+ extern unsigned int tabspaces;
+ extern unsigned int defaultfg;
+ extern unsigned int defaultbg;
++extern int nodecorations;

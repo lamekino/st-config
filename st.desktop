@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Simple Terminal
+GenericName=Terminal
+Comment=Simple terminal emulator for X
+Exec=st -t "st"
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Icon=utilities-terminal
+Categories=System;TerminalEmulator;
+Keywords=shell;prompt;command;commandline;cmd;
+StartupWMClass=xterm-256color
+X-GNOME-SingleWindow=false
